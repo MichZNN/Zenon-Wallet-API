@@ -142,25 +142,31 @@ class ZenonWalletClient:
         """Retrieves plasma information for the wallet address."""
         return self.request(f"/api/ledger/{address}/plasma")
 
-    def generate_plasma_bot(self):
+    def generate_plasma_bot(self, address):
         """Generate plasma by fusing QSR from the plasma-bot"""
-        return self.request("/api/utilities/plasma-bot/fuse", method="POST", payload={"address": self.address})
+        return self.request("/api/utilities/plasma-bot/fuse", method="POST", payload={"address": address})
 
-    def generate_plasma_qsr(self):
+    def generate_plasma_qsr(self, address):
         """Generate plasma by fusing QSR from wallet address"""
-        return self.request(f"/api/plasma/{self.address}/fuse", method="POST")
+        return self.request(f"/api/plasma/{address}/fuse", method="POST")
 
-    def cancel_plasma_fusion(self):
+    def cancel_plasma_fusion(self, address):
         """Send requests to cancel plasma fusion from wallet address"""
-        return self.request(f"/api/plasma/{self.address}/cancel", method="POST")
+        return self.request(f"/api/plasma/{address}/cancel", method="POST")
 
     def validate_address(self, address):
         """Validate an wallet address"""
         return self.request(f"/api/utilities/address/validate?address={address}", method="POST")
 
-    def send_tokens(self, receiver_address=None, amount=0.00000001, tokenStandard="ZNN"):
-        if receiver_address and amount >= 0.00000001:
-            return self.request(f"/api/transfer/{self.address}/send", method="POST", payload={"address": receiver_address, "amount": amount, "tokenStandard": tokenStandard})
+    def send_tokens(self, **kwargs):
+        """Send tokens to an wallet address"""
+        sender_address = kwargs.get("sender", self.address)
+        receiver_address = kwargs.get("receiver")
+        amount = kwargs.get("amount", "0.00000001")
+        tokenStandard = kwargs.get("tokenStandard", "ZNN")
+
+        if receiver_address and float(amount) >= 0.00000001:
+            return self.request(f"/api/transfer/{sender_address}/send", method="POST", payload={"address": receiver_address, "amount": amount, "tokenStandard": tokenStandard})
         else:
             return False
 

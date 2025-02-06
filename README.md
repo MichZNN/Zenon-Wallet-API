@@ -40,16 +40,24 @@ The following API endpoints are covered in this script:
   - ✅ Get the account info by address `client.ledger.account_info(address)`
   
 - **Plasma Operations**
-  - ✅ Generate plasma by fusing QSR `client.generate_plasma_qsr()`
-  - ✅ Cancel a plasma fusion `client.cancel_plasma_fusion()`
+  - ✅ Generate plasma by fusing QSR `client.generate_plasma_qsr(address)`
+  - ✅ Cancel a plasma fusion `client.cancel_plasma_fusion(address)`
   
 - **Utilities**
   - ✅ Get the fusion expiration by address from the plasma-bot `client.fusion_expiration(address)`
-  - ✅ Generate plasma by fusing QSR from the plasma-bot `client.generate_plasma_bot()`
+  - ✅ Generate plasma by fusing QSR from the plasma-bot `client.generate_plasma_bot(address)`
   - ✅ Validate an address `client.validate_address(address)`
   
 - **Transfer Operations**
-  - ✅ Send tokens to an address `client.send_tokens(receiver_address, amount, tokenStandard)`
+  - ✅ Send tokens to an address
+    ```python
+    client.send_tokens(
+      sender="",  # (Optional) Default is the wallet's primary address
+      receiver="",  # (Required) The recipient's wallet address
+      amount="",  # (Required) The amount of tokens to send
+      tokenStandard=""  # (Optional) Default is "ZNN"
+    )
+    ```
 
 ## Configuration
 The script can be configured with a custom API URL and authentication headers if required.
