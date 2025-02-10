@@ -102,62 +102,38 @@ class ZenonWalletClient:
             return {"status": None, "data": None}
 
     # Specific API methods
-    def wallet_initialize(self):
-        """Sends a request to initialize a new wallet"""
-        return self.request("/api/wallet/init", method="POST", payload={"password": self.secret})
 
-    def wallet_status(self):
-        """Retrieves the wallet status."""
-        return self.request("/api/wallet/status")
+    # Plasma
+    def generate_plasma_qsr(self, address):
+        """Generate plasma by fusing QSR from wallet address"""
+        return self.request(f"/api/plasma/{address}/fuse", method="POST")
 
-    def wallet_unlock(self):
-        """Sends a request to unlock the wallet."""
-        return self.request("/api/wallet/unlock", method="POST", payload={"password": self.secret})
+    def cancel_plasma_fusion(self, address, idHash): # Untested
+        """Send requests to cancel plasma fusion from wallet address"""
+        return self.request(f"/api/plasma/{address}/cancel", method="POST", payload={"idHash": idHash})
 
-    def wallet_lock(self):
-        """Sends a request to lock the wallet"""
-        return self.request("/api/wallet/lock", method="POST")
-
-    def wallet_restore(self):
-        """Sends a request to restore an existing wallet"""
-        return self.request("/api/wallet/restore", method="POST", payload={"password": self.secret, "mnemonic": os.getenv("ZENON_WALLET_API_MNEMONIC")})
-
-    def wallet_add_accounts(self):
-        """Add new accounts to wallet."""
-        return self.request("/api/wallet/accounts", method="POST")
-
-    def wallet_accounts(self):
-        """Retrieves the list of wallet accounts."""
-        return self.request("/api/wallet/accounts")
-
-    def fusion_expiration(self, address):
-        """Get the fusion expiration by address from the plasma-bot"""
-        return self.request(f"/api/utilities/plasma-bot/expiration/{address}")
-
+    # Ledger
     def ledger_account_info(self, address):
         """Get the account info by address"""
-        return self.request((f"/api/ledger/{address}/balances"))
+        return self.request(f"/api/ledger/{address}/balances")
+
+    def ledger_received_account_blocks(self, address):
+        """Get all received account blocks by address"""
+        return self.request(f"/api/ledger/{address}/received")
+
+    def ledger_unreceived_account_blocks(self, address):
+        """Get all unreceived account blocks by address"""
+        return self.request(f"/api/ledger/{address}/unreceived")
 
     def ledger_plasma_info(self, address):
         """Retrieves plasma information for the wallet address."""
         return self.request(f"/api/ledger/{address}/plasma")
 
-    def generate_plasma_bot(self, address):
-        """Generate plasma by fusing QSR from the plasma-bot"""
-        return self.request("/api/utilities/plasma-bot/fuse", method="POST", payload={"address": address})
+    def ledger_fusion_entries(self, address):
+        """Get all fusion entries by address"""
+        return self.request(f"/api/ledger/{address}/fused")
 
-    def generate_plasma_qsr(self, address):
-        """Generate plasma by fusing QSR from wallet address"""
-        return self.request(f"/api/plasma/{address}/fuse", method="POST")
-
-    def cancel_plasma_fusion(self, address):
-        """Send requests to cancel plasma fusion from wallet address"""
-        return self.request(f"/api/plasma/{address}/cancel", method="POST")
-
-    def validate_address(self, address):
-        """Validate an wallet address"""
-        return self.request(f"/api/utilities/address/validate?address={address}", method="POST")
-
+    # Transfer
     def send_tokens(self, **kwargs):
         """Send tokens to an wallet address"""
         sender_address = kwargs.get("sender", self.address)
@@ -170,6 +146,53 @@ class ZenonWalletClient:
         else:
             return False
 
+    def receive_account_block(self, address, blockHash): # Untested
+        """Receive an account block by block hash"""
+        return self.request(f"/api/transfer/{address}/receive", method="POST", payload={"blockHash": blockHash})
+
+    # Wallet
+    def wallet_status(self):
+        """Retrieves the wallet status."""
+        return self.request("/api/wallet/status")
+
+    def wallet_accounts(self):
+        """Retrieves the list of wallet accounts."""
+        return self.request("/api/wallet/accounts")
+
+    def wallet_add_accounts(self):
+        """Add new accounts to wallet."""
+        return self.request("/api/wallet/accounts", method="POST")
+
+    def wallet_initialize(self):
+        """Sends a request to initialize a new wallet"""
+        return self.request("/api/wallet/init", method="POST", payload={"password": self.secret})
+
+    def wallet_restore(self):
+        """Sends a request to restore an existing wallet"""
+        return self.request("/api/wallet/restore", method="POST", payload={"password": self.secret, "mnemonic": os.getenv("ZENON_WALLET_API_MNEMONIC")})
+
+    def wallet_lock(self):
+        """Sends a request to lock the wallet"""
+        return self.request("/api/wallet/lock", method="POST")
+
+    def wallet_unlock(self):
+        """Sends a request to unlock the wallet."""
+        return self.request("/api/wallet/unlock", method="POST", payload={"password": self.secret})
+
+    # Utilities
+    def generate_plasma_bot(self, address):
+        """Generate plasma by fusing QSR from the plasma-bot"""
+        return self.request("/api/utilities/plasma-bot/fuse", method="POST", payload={"address": address})
+
+    def fusion_expiration(self, address):
+        """Get the fusion expiration by address from the plasma-bot"""
+        return self.request(f"/api/utilities/plasma-bot/expiration/{address}")
+
+    def validate_address(self, address):
+        """Validate an wallet address"""
+        return self.request(f"/api/utilities/address/validate?address={address}", method="POST")
+
+    # Close
     def close(self):
         """Closes the session."""
         self.session.close()

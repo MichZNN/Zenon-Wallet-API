@@ -36,12 +36,15 @@ The following API endpoints are covered in this script:
   - ✅ Get all wallet accounts `client.wallet_accounts()`
   
 - **Ledger Endpoints**
+  - ✅ Get the account info by address `client.ledger_account_info(address)`
+  - ✅ Get all received account blocks by address `client.ledger_received_account_blocks(address)`
+  - ✅ Get all unreceived account blocks by address `client.ledger_unreceived_account_blocks(address)`
   - ✅ Get plasma info by address `client.ledger_plasma_info(address)`
-  - ✅ Get the account info by address `client.ledger.account_info(address)`
+  - ✅ Get all fusion entries by address `client.ledger_fusion_entries(address)`
   
 - **Plasma Operations**
   - ✅ Generate plasma by fusing QSR `client.generate_plasma_qsr(address)`
-  - ✅ Cancel a plasma fusion `client.cancel_plasma_fusion(address)`
+  - ✅ Cancel a plasma fusion `client.cancel_plasma_fusion(address, idHash)`
   
 - **Utilities**
   - ✅ Get the fusion expiration by address from the plasma-bot `client.fusion_expiration(address)`
@@ -58,6 +61,7 @@ The following API endpoints are covered in this script:
       tokenStandard=""  # (Optional) Default is "ZNN"
     )
     ```
+  - ✅ Receive an account block by block hash `client.receive_account_block(address, blockHash)`
 
 ## Configuration
 The script can be configured with a custom API URL and authentication headers if required.
