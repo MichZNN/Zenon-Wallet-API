@@ -29,7 +29,11 @@ class ZenonWalletClient:
         self.api_url = os.getenv("ZENON_WALLET_API_URL")
         self.secret = os.getenv("ZENON_WALLET_API_SECRET")
         self.address = os.getenv("ZENON_WALLET_API_ADDRESS")
-        self.test_address = os.getenv("ZENON_WALLET_TEST_ADDRESS")
+
+        self.test_address = "z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7"
+        self.account_address_1 = "z1qr00j9wkcyvgz567sygnjxshnkq3xqxsc0t7cv"
+        self.account_address_2 = "z1qzg4377yxss6m0duu38ntc0zu3s0thn9rwze3f"
+
         self.session = requests.Session()
 
         # Authenticate if no token is present in the session headers
@@ -103,6 +107,11 @@ class ZenonWalletClient:
 
     # Specific API methods
 
+    # AutoReceiver
+    def get_autoreceiver_status(self):
+        """Get the auto-receiver status"""
+        return self.request(f"/api/auto-receiver/status")
+
     # Plasma
     def generate_plasma_qsr(self, address):
         """Generate plasma by fusing QSR from wallet address"""
@@ -117,13 +126,49 @@ class ZenonWalletClient:
         """Get the account info by address"""
         return self.request(f"/api/ledger/{address}/balances")
 
-    def ledger_received_account_blocks(self, address):
-        """Get all received account blocks by address"""
-        return self.request(f"/api/ledger/{address}/received")
+    def ledger_received_account_blocks(self, address, **kwargs):
+        """
+        Get all received account blocks by address
 
-    def ledger_unreceived_account_blocks(self, address):
-        """Get all unreceived account blocks by address"""
-        return self.request(f"/api/ledger/{address}/unreceived")
+        Possible query parameters (via kwargs):
+        - pageIndex (int, default=0)
+        - pageSize (int, default=1024, must be between 1 and 1024 inclusive)
+        """
+        pageIndex = kwargs.get('pageIndex', 0)
+        pageSize = kwargs.get('pageSize', 1024)
+
+        if not isinstance(pageIndex, int):
+            raise TypeError(f"pageIndex must be an integer, got {type(pageIndex).__name__}")
+
+        if not isinstance(pageSize, int):
+            raise TypeError(f"pageSize must be an integer, got {type(pageSize).__name__}")
+
+        if not (1 <= pageSize <= 1024):
+            raise ValueError("pageSize must be between 1 and 1024")
+
+        return self.request(f"/api/ledger/{address}/received?pageIndex={pageIndex}&pageSize={pageSize}")
+
+    def ledger_unreceived_account_blocks(self, address, **kwargs):
+        """
+        Get all unreceived account blocks by address
+
+        Possible query parameters:
+        - pageIndex (int, default=0)
+        - pageSize (int, default=50, must be between 1 and 50 inclusive)
+        """
+        pageIndex = kwargs.get('pageIndex', 0)
+        pageSize = kwargs.get('pageSize', 50)
+
+        if not isinstance(pageIndex, int):
+            raise TypeError(f"pageIndex must be an integer, got {type(pageIndex).__name__}")
+
+        if not isinstance(pageSize, int):
+            raise TypeError(f"pageSize must be an integer, got {type(pageSize).__name__}")
+
+        if not (1 <= pageSize <= 50):
+            raise ValueError("pageSize must be between 1 and 50")
+            
+        return self.request(f"/api/ledger/{address}/unreceived?pageIndex={pageIndex}&pageSize={pageSize}")
 
     def ledger_plasma_info(self, address):
         """Retrieves plasma information for the wallet address."""
@@ -146,8 +191,10 @@ class ZenonWalletClient:
         else:
             return False
 
-    def receive_account_block(self, address, blockHash): # Untested
+    def receive_account_block(self, address, blockHash):
         """Receive an account block by block hash"""
+        """Requires Wallet to be initialized and unlocked"""
+        """`blockHash` can be received from `ledger_unreceived_account_blocks`. Only needed when auto-receiver is disabled"""
         return self.request(f"/api/transfer/{address}/receive", method="POST", payload={"blockHash": blockHash})
 
     # Wallet
