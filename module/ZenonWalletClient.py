@@ -130,9 +130,9 @@ class ZenonWalletClient:
         """
         Get all received account blocks by address
 
-        Possible query parameters (via kwargs):
-        - pageIndex (int, default=0)
-        - pageSize (int, default=1024, must be between 1 and 1024 inclusive)
+        :param address: (str, required)
+        :param pageIndex: (int, default=0)
+        :param pageSize: (int, default=1024, must be between 1 and 1024 inclusive)
         """
         pageIndex = kwargs.get('pageIndex', 0)
         pageSize = kwargs.get('pageSize', 1024)
@@ -152,9 +152,9 @@ class ZenonWalletClient:
         """
         Get all unreceived account blocks by address
 
-        Possible query parameters:
-        - pageIndex (int, default=0)
-        - pageSize (int, default=50, must be between 1 and 50 inclusive)
+        :param address: (str, required)
+        :param pageIndex: (int, default=0)
+        :param pageSize: (int, default=50, must be between 1 and 50 inclusive)
         """
         pageIndex = kwargs.get('pageIndex', 0)
         pageSize = kwargs.get('pageSize', 50)
@@ -180,21 +180,40 @@ class ZenonWalletClient:
 
     # Transfer
     def send_tokens(self, **kwargs):
-        """Send tokens to an wallet address"""
+        """
+        Send tokens to an wallet address
+        :param sender: (str, optional) Defaults to the wallet's primary address
+        :param receiver: (str, required) The recipient address
+        :param amount: (str, optional) The amount to send; default is "0.00000001" and must be a valid float >= 0.00000001
+        :param tokenStandard: (str, optional) Defaults to "ZNN"
+        """
         sender_address = kwargs.get("sender", self.address)
         receiver_address = kwargs.get("receiver")
         amount = kwargs.get("amount", "0.00000001")
         tokenStandard = kwargs.get("tokenStandard", "ZNN")
 
-        if receiver_address and float(amount) >= 0.00000001:
-            return self.request(f"/api/transfer/{sender_address}/send", method="POST", payload={"address": receiver_address, "amount": amount, "tokenStandard": tokenStandard})
-        else:
-            return False
+        if not isinstance(amount, str):
+            raise TypeError(f"amount must be a string, got {type(amount).__name__}")
+
+        try:
+            parsed_amount = float(amount)
+        except ValueError:
+            raise ValueError(f"amount must be a valid numeric string, got '{amount}'")
+
+        if parsed_amount < 0.00000001:
+            raise ValueError("amount must be at least 0.00000001")
+
+        if not receiver_address:
+            raise ValueError("receiver is required and must be a valid address")
+
+        return self.request(f"/api/transfer/{sender_address}/send", method="POST", payload={"address": receiver_address, "amount": amount, "tokenStandard": tokenStandard})
 
     def receive_account_block(self, address, blockHash):
-        """Receive an account block by block hash"""
-        """Requires Wallet to be initialized and unlocked"""
-        """`blockHash` can be received from `ledger_unreceived_account_blocks`. Only needed when auto-receiver is disabled"""
+        """
+        Receive an account block by block hash
+        Requires Wallet to be initialized and unlocked
+        `blockHash` can be received from `ledger_unreceived_account_blocks`. Only needed when auto-receiver is disabled
+        """
         return self.request(f"/api/transfer/{address}/receive", method="POST", payload={"blockHash": blockHash})
 
     # Wallet

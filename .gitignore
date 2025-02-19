@@ -6,6 +6,7 @@ table_*
 *.txt
 img/_/
 _*
+!__*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
